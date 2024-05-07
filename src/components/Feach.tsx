@@ -1,23 +1,34 @@
 import React, { useEffect, useState } from "react";
 
-export const Feach = (): React.JSX.Element => {
+const useRickAndMortyApi = () => {
   const [personajes, setpersonajes] = useState([]);
-  const getData = () => {
-    // const requestOptions = {
-    //   method: "GET",
-    //   redirect: "follow",
-    // };
 
-    fetch("https://rickandmortyapi.com/api/character")
-      .then((response) => response.json())
-      .then((result) => setpersonajes(result["results"]))
-      .catch((error) => console.error(error));
-  };
+  const [error, seterror] = useState(null);
+  const [liading, setLiading] = useState(true);
 
   useEffect(() => {
-    getData();
+    fetch("https://rickandmortyapi.com/api/character")
+      .then((response) => {
+        if (response.status >= 400) throw new Error("Error!!");
+        return response.json();
+      })
+      .then((result) => setpersonajes(result["results"]))
+      .catch((error) => {
+        seterror(error);
+        console.error(error);
+      })
+      .finally(() => setLiading(false));
   }, []);
 
+  return { personajes, error, liading };
+};
+
+export const Feach = (): React.JSX.Element => {
+  const { personajes, error, liading } = useRickAndMortyApi();
+
+  if (liading) return <p>page loading, plices wait !!</p>;
+
+  if (error) return <p>A network error was encontrer!!!</p>;
   return (
     <ul>
       {personajes.map((personaje) => (
